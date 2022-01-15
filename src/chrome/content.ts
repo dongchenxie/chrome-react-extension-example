@@ -1,5 +1,5 @@
 import { ChromeMessage, Sender } from "../types";
-
+import {getCurrentTabUrl} from "./utils"
 type MessageResponse = (response?: any) => void
 
 const validateSender = (
@@ -28,7 +28,10 @@ const messagesFromReactAppListener = (
 }
 
 const main = () => {
-    console.log('[content.ts] Main')
+    console.log('[content.ts] Main123')
+    let mainUrl
+    getCurrentTabUrl((url)=>{mainUrl=url})
+    console.log(mainUrl)
     /**
      * Fired when a message is sent from either an extension process or a content script.
      */

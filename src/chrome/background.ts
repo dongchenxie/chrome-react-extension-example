@@ -1,4 +1,6 @@
+import {getCurrentTabUrl} from "./utils"
 export {}
+
 /** Fired when the extension is first installed,
  *  when the extension is updated to a new version,
  *  and when Chrome is updated to a new version. */
@@ -29,4 +31,17 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.runtime.onSuspend.addListener(() => {
     console.log('[background.js] onSuspend')
     alert('[background.js] onSuspend');
+});
+
+chrome.tabs.onUpdated.addListener(function(tabID, info, tab) {
+    let myURL
+    chrome.tabs.query({
+        active: true,
+        currentWindow: true
+      }, function(tabs) {
+          console.log(tabs)
+        var tab = tabs[0];
+        myURL = tab.url;
+      });
+      console.log("url!!",myURL)
 });

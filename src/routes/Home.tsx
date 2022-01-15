@@ -7,6 +7,7 @@ import {loadOpenSeaPrice,loadLooksRarePrice} from "../utility/priceLoader"
 import { urlParser } from "../utility/urlParser";
 export const Home = () => {
     const [url, setUrl] = useState<string>('');
+    const [tabId,setTabId] =useState<number|undefined>();
     const [prices,setPrices]= useState<string[]>([]);
     const [responseFromContent, setResponseFromContent] = useState<string>('');
     const [errorMsg,setErrorMsg]=useState<string|undefined>()
@@ -59,6 +60,9 @@ export const Home = () => {
                 setPrices([...prices,await loadLooksRarePrice(address,id)])
             ])
         }
+        getCurrentTabUId((id)=>{
+            setTabId(id)
+        })
         const result =urlParser(url)
         if(result.success){
             loadPrice(result.address!,result.id!)
@@ -70,6 +74,12 @@ export const Home = () => {
     return (
         <div className="App">
             <header className="App-header">
+                <div>
+                    url:{url}
+                </div>
+                <div>
+                    tab id:{tabId}
+                </div>
                 {errorMsg?<div style={{width:"100%"}}>
                     {errorMsg}
                 </div>:<div>

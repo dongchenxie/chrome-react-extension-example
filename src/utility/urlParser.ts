@@ -27,7 +27,7 @@ export function urlParser(url: string): UrlValidateResult {
   };
   const urlArray = url.split("/");
   if (urlArray[2] === "looksrare.org") {
-    if (web3.utils.isAddress(urlArray[4]) && !urlArray[5]) {
+    if (web3.utils.isAddress(urlArray[4]) && urlArray[5]) {
       result.address = urlArray[4];
       result.id = urlArray[5];
       result.url = UrlMatch.LOOKSRARE;
@@ -38,7 +38,7 @@ export function urlParser(url: string): UrlValidateResult {
       result.msg = "Please navigate to the item page";
     }
   } else if (urlArray[2] === "opensea.io") {
-    if (web3.utils.isAddress(urlArray[4]) && !urlArray[5]) {
+    if (web3.utils.isAddress(urlArray[4]) && urlArray[5]) {
       result.address = urlArray[4];
       result.id = urlArray[5];
       result.url = UrlMatch.OPENSEA;
