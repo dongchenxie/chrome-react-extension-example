@@ -5,6 +5,8 @@ import { getCurrentTabUId, getCurrentTabUrl } from "../chrome/utils";
 import web3 from "web3";
 import { loadOpenSeaPrice, loadLooksRarePrice, PriceResult } from "../utility/priceLoader"
 import { urlParser } from "../utility/urlParser";
+import { ReactSVG } from 'react-svg'
+import ETHIcon from "../assets/ethereum.svg"
 export const Home = () => {
     const [url, setUrl] = useState<string>('');
     const [tabId, setTabId] = useState<number | undefined>();
@@ -80,6 +82,35 @@ export const Home = () => {
             <div className="App" style={{ width: "100%" }}>
                 <header className="App-header text-3xl font-bold underline">
                     <p className=" text-3xl font-bold underline">price</p>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">First</th>
+                                <th scope="col">Last</th>
+                                <th scope="col">Handle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">1</th>
+                                <td>Mark</td>
+                                <td>Otto</td>
+                                <td>@mdo</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">2</th>
+                                <td>Jacob</td>
+                                <td>Thornton</td>
+                                <td>@fat</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">3</th>
+                                <td >Larry the Bird</td>
+                                <td>@twitter</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     {errorMsg ? <div style={{}}>
                         {errorMsg}
                     </div> : <div>
@@ -104,7 +135,7 @@ export const Home = () => {
                                     <td>{v.price}</td>
                                 </tr>)
                             }
-                        </table> : <div>loading</div>}
+                        </table> : <div className="App-logo-spin"><ReactSVG src={ETHIcon}/></div>}
 
                     </div>}
                 </header>

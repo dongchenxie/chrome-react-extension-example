@@ -15,8 +15,8 @@ export type PriceResult = {
   platfrom: PLATFORM;
 };
 enum PLATFORM {
-  OPENSEA = "opensea",
-  LOOKSRARE = "looksrare",
+  OPENSEA = "OpenSea",
+  LOOKSRARE = "Looksrare",
 }
 const parser = new DOMParser();
 export async function loadOpenSeaPrice(
@@ -34,8 +34,10 @@ export async function loadOpenSeaPrice(
       let currentPriceType: PRICE_TYPE=PRICE_TYPE.NONE;
       if (priceType.toLocaleLowerCase().indexOf("top bid") >= 0) {
         currentPriceType = PRICE_TYPE.TOP_BID;
-      } else if (priceType.toLocaleLowerCase().indexOf("Minimum bid") >= 0) {
+      } else if (priceType.toLocaleLowerCase().indexOf("minimum bid") >= 0) {
         currentPriceType = PRICE_TYPE.MIN_BID;
+      } else if (priceType.toLocaleLowerCase().indexOf("current price") >= 0){
+          currentPriceType = PRICE_TYPE.LISTED;
       }
       return {
         platfrom: PLATFORM.OPENSEA,
