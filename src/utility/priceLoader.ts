@@ -1,5 +1,4 @@
 import axios from "axios";
-import {JSDOM} from "jsdom"
 enum PRICE_TYPE {
   TOPBID = "Top bid",
   MINBID = "Minium bid",
@@ -20,7 +19,8 @@ export async function loadOpenSeaPrice(address: string, itemId: string): Promise
   try {
     const result = await axios.get(`https://opensea.io/assets/${address}/${itemId}`);
     if (result.status === 200) {
-      const doc = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`).window.document;
+    const parser=new DOMParser()
+      const doc = parser.parseFromString(`<!DOCTYPE html><p>Hello world</p>`,"text/html");
       const listedPrice=doc.evaluate("/html/body/div[1]/div[1]/main/div/div/div/div[1]/div/div[1]/div[2]/div[1]/div/section/div[2]/div[2]/div[1]/div[2]/text()",doc,null,2,null).stringValue
       
       console.log("p", listedPrice);
