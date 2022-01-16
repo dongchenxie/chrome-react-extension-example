@@ -1,13 +1,16 @@
 import axios from "axios";
 enum PRICE_TYPE {
-  TOPBID = "Top bid",
-  MINBID = "Minium bid",
-  LISTED = "Listed Price",
+  TOP_BID = "Top bid",
+  MIN_BID = "Minium bid",
+  BEST_OFFER="Best offer",
+  LISTED = "Listed price",
   NONE = "No price info",
 }
+type Prices={[key in PRICE_TYPE]?:number}
 export type PriceResult = {
   priceType: PRICE_TYPE;
   price?: number;
+  prices?:Prices
   url: string;
   platfrom: PLATFORM;
 };
@@ -15,27 +18,29 @@ enum PLATFORM {
   OPENSEA = "opensea",
   LOOKSRARE = "looksrare",
 }
-export async function loadOpenSeaPrice(address: string, itemId: string): Promise<PriceResult> {
+const parser = new DOMParser();
+export async function loadOpenSeaPrice(
+  address: string,
+  itemId: string
+): Promise<PriceResult> {
   try {
-    const result = await axios.get(`https://opensea.io/assets/${address}/${itemId}`);
+    const result = await axios.get(
+      `https://opensea.io/assets/${address}/${itemId}`
+    );
     if (result.status === 200) {
-    const parser=new DOMParser()
-      const doc = parser.parseFromString(`<!DOCTYPE html><p>Hello world</p>`,"text/html");
-      const listedPrice=doc.evaluate("/html/body/div[1]/div[1]/main/div/div/div/div[1]/div/div[1]/div[2]/div[1]/div/section/div[2]/div[2]/div[1]/div[2]/text()",doc,null,2,null).stringValue
-      
-      console.log("p", listedPrice);
-      const priceType = doc.evaluate(
-          "/html/body/div[1]/div[1]/main/div/div/div/div[2]/div/div[1]/div/section/div[2]/div[1]",doc,null,2,null).stringValue;
-    console.log(priceType)
-      let currentPriceType: PRICE_TYPE;
+      const doc = parser.parseFromString(result.data, "text/html");
+      const listedPrice = doc.xpath("/html/body/div[1]/div[1]/main/div/div/div/div[1]/div/div[1]/div[2]/div[1]/div/section/div[2]/div[2]/div[1]/div[2]/text()")
+      const priceType = doc.xpath("/html/body/div[1]/div[1]/main/div/div/div/div[2]/div/div[1]/div/section/div[2]/div[1]")
+      let currentPriceType: PRICE_TYPE=PRICE_TYPE.NONE;
       if (priceType.toLocaleLowerCase().indexOf("top bid") >= 0) {
-        currentPriceType = PRICE_TYPE.TOPBID;
+        currentPriceType = PRICE_TYPE.TOP_BID;
       } else if (priceType.toLocaleLowerCase().indexOf("Minimum bid") >= 0) {
-        currentPriceType = PRICE_TYPE.MINBID;
+        currentPriceType = PRICE_TYPE.MIN_BID;
       }
       return {
         platfrom: PLATFORM.OPENSEA,
         priceType: PRICE_TYPE.LISTED,
+        prices:currentPriceType!==PRICE_TYPE.NONE?{[currentPriceType]:Number(listedPrice)}:undefined,
         price: Number(listedPrice),
         url: `https://opensea.io/assets/${address}/${itemId}`,
       };
@@ -53,17 +58,27 @@ export async function loadOpenSeaPrice(address: string, itemId: string): Promise
     };
   }
 }
-export async function loadLooksRarePrice(address: string, itemId: string): Promise<PriceResult> {
+export async function loadLooksRarePrice(
+  address: string,
+  itemId: string
+): Promise<PriceResult> {
   try {
-    const result = await axios.get(`https://looksrare.org/collections/${address}/${itemId}`);
+    const result = await axios.get(
+      `https://looksrare.org/collections/${address}/${itemId}`
+    );
     if (result.status === 200) {
-      const el = document.createElement("html");
-      el.innerHTML = result.data;
-      const price = el.getElementsByTagName("h2")[0].innerHTML;
+    
+      const doc = parser.parseFromString(result.data, "text/html");
+      const listedPrice =doc.xpath("/html/body/div[1]/div[2]/div/div/div/div[1]/div[1]/div[1]/div[2]/div[1]/div[2]/h2")
+      const bestOfferPrice=doc.xpath("/html/body/div[1]/div[2]/div/div/div/div[1]/div[1]/div[1]/div[2]/div[1]/div[3]/div[2]")
+      const prices:Prices={};
+      if(listedPrice &&  Number(listedPrice) ) prices[PRICE_TYPE.LISTED] = Number(listedPrice);
+      if(bestOfferPrice && Number(bestOfferPrice)) prices[PRICE_TYPE.BEST_OFFER] =Number(bestOfferPrice)
       return {
         platfrom: PLATFORM.LOOKSRARE,
         priceType: PRICE_TYPE.LISTED,
-        price: Number(price),
+        price: Number(listedPrice),
+        prices:prices,
         url: `https://looksrare.org/collections/${address}/${itemId}`,
       };
     }
@@ -80,7 +95,18 @@ export async function loadLooksRarePrice(address: string, itemId: string): Promi
     };
   }
 }
-function getElementByXpath(path: string) {
-  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-    .singleNodeValue;
+declare global {
+  interface Document {
+    xpath(path: string): string;
+  }
 }
+
+Document.prototype.xpath = function (path: string) {
+  return this.evaluate(
+    path,
+    this,
+    null,
+    2,
+    null
+  ).stringValue;;
+};

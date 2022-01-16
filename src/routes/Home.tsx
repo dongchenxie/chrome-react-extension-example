@@ -2,13 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { ChromeMessage, Sender } from "../types";
 import { getCurrentTabUId, getCurrentTabUrl } from "../chrome/utils";
-import {JSDOM} from "jsdom"
+import web3 from "web3";
+import { loadOpenSeaPrice, loadLooksRarePrice, PriceResult } from "../utility/priceLoader"
+import { urlParser } from "../utility/urlParser";
 export const Home = () => {
     const [url, setUrl] = useState<string>('');
+    const [tabId, setTabId] = useState<number | undefined>();
+    const [prices, setPrices] = useState<PriceResult[]>([]);
     const [responseFromContent, setResponseFromContent] = useState<string>('');
-
-    let {push} = useHistory();
-
+    const [errorMsg, setErrorMsg] = useState<string | undefined>()
+    let { push } = useHistory();
+    console.log(web3.utils.isAddress('0xc1912fee45d61c87cc5ea59dae31190fffff232d'))
     /**
      * Get current URL
      */
@@ -49,29 +53,65 @@ export const Home = () => {
                 });
         });
     };
-    const parser = new DOMParser();
-    const dom=parser.parseFromString(`<!DOCTYPE html><p>Hello world</p>`,"text/html");
-    console.log(dom?.querySelector("p")?.textContent);
+    useEffect(() => {
+        const loadPrice = async (address: string, id: string) => {
+            const result1 = await loadOpenSeaPrice(address, id)
+            const result2 = await loadLooksRarePrice(address, id)
+            setPrices([...prices, result1, result2])
+
+        }
+        // getCurrentTabUId((id) => {
+        //     setTabId(id)
+        // })
+        console.log("url", url)
+        if (url) {
+            const result = urlParser(url)
+            if (result.success) {
+                loadPrice(result.address!, result.id!)
+            } else {
+                setErrorMsg(result.msg)
+            }
+        }
+
+    }, [url])
 
     return (
-        <div className="App">
-            <header className="App-header">
-                <p>Home</p>
-                <p>URL:</p>
-                <p>
-                    {url}
-                </p>
-                <button onClick={sendTestMessage}>SEND MESSAGE</button>
-                <button onClick={sendRemoveMessage}>Remove logo</button>
-                <p>Response from content:</p>
-                <p>
-                    {responseFromContent}
-                </p>
-                <button onClick={() => {
-                    push('/about')
-                }}>About page
-                </button>
-            </header>
-        </div>
+        <>
+            <div className="App" style={{ width: "100%" }}>
+                <header className="App-header text-3xl font-bold underline">
+                    <p className=" text-3xl font-bold underline">price</p>
+                    {errorMsg ? <div style={{}}>
+                        {errorMsg}
+                    </div> : <div>
+
+
+                        {prices.length > 0 ? <table className="table border border-1 rounded">
+                            <tr>
+                                <th>
+                                    Platform name
+                                </th>
+                                <th>
+                                    Result
+                                </th>
+                                <th>
+                                    Price
+                                </th>
+                            </tr>
+                            {
+                                prices.map((v) => <tr onClick={() => { window.open(v.url); }} role="button">
+                                    <td>{v.platfrom}</td>
+                                    <td>{v.priceType}</td>
+                                    <td>{v.price}</td>
+                                </tr>)
+                            }
+                        </table> : <div>loading</div>}
+
+                    </div>}
+                </header>
+            </div>
+            <script src="https://cdn.tailwindcss.com"></script>
+
+        </>
+
     )
 }
