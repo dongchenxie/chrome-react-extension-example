@@ -1,4 +1,5 @@
 import axios from "axios";
+import {JSDOM} from "jsdom"
 enum PRICE_TYPE {
   TOPBID = "Top bid",
   MINBID = "Minium bid",
@@ -19,18 +20,13 @@ export async function loadOpenSeaPrice(address: string, itemId: string): Promise
   try {
     const result = await axios.get(`https://opensea.io/assets/${address}/${itemId}`);
     if (result.status === 200) {
-      const el = new xmldom.DOMParser().parseFromString(result.data);
-      const price = xpath.select1(
-        "/html/body/div[1]/div[1]/main/div/div/div/div[1]/div/div[1]/div[2]/div[1]/div/section/div[2]/div[2]/div[1]/div[2]/text()",
-        el
-      ) as any;
-      console.log("p", price.nodeValue);
-      const priceType = (
-        xpath.select1(
-          "/html/body/div[1]/div[1]/main/div/div/div/div[2]/div/div[1]/div/section/div[2]/div[1]",
-          el
-        ) as any
-      ).nodeValue as string;
+      const doc = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`).window.document;
+      const listedPrice=doc.evaluate("/html/body/div[1]/div[1]/main/div/div/div/div[1]/div/div[1]/div[2]/div[1]/div/section/div[2]/div[2]/div[1]/div[2]/text()",doc,null,2,null).stringValue
+      
+      console.log("p", listedPrice);
+      const priceType = doc.evaluate(
+          "/html/body/div[1]/div[1]/main/div/div/div/div[2]/div/div[1]/div/section/div[2]/div[1]",doc,null,2,null).stringValue;
+    console.log(priceType)
       let currentPriceType: PRICE_TYPE;
       if (priceType.toLocaleLowerCase().indexOf("top bid") >= 0) {
         currentPriceType = PRICE_TYPE.TOPBID;
@@ -40,7 +36,7 @@ export async function loadOpenSeaPrice(address: string, itemId: string): Promise
       return {
         platfrom: PLATFORM.OPENSEA,
         priceType: PRICE_TYPE.LISTED,
-        price: Number(price),
+        price: Number(listedPrice),
         url: `https://opensea.io/assets/${address}/${itemId}`,
       };
     }
