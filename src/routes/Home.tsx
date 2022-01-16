@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { ChromeMessage, Sender } from "../types";
 import { getCurrentTabUId, getCurrentTabUrl } from "../chrome/utils";
-
+import {JSDOM} from "jsdom"
 export const Home = () => {
     const [url, setUrl] = useState<string>('');
     const [responseFromContent, setResponseFromContent] = useState<string>('');
@@ -49,7 +49,9 @@ export const Home = () => {
                 });
         });
     };
-
+    const parser = new DOMParser();
+    const dom=parser.parseFromString(`<!DOCTYPE html><p>Hello world</p>`,"text/html");
+    console.log(dom?.querySelector("p")?.textContent);
 
     return (
         <div className="App">
